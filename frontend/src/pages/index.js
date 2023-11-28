@@ -1,12 +1,18 @@
-import HomeSection from '@/components/HomeSection'
-import React from 'react'
+import HomeSection from "@/components/HomeSection";
+import SwapPage from "@/components/SwapPage";
+import React from "react";
 
 const HomePage = () => {
   return (
-    <div className='h-full min-h-screen w-full flex items-center justify-center'>
-      <HomeSection />
+    <div>
+      <div className="h-full min-h-screen w-full flex flex-col items-center justify-center">
+        <HomeSection />
+      </div>
+      <div className="bg-black">
+        <SwapPage />
+      </div>
     </div>
-  )
-}
+  );
+};
 
-export default HomePage
+export default HomePage;

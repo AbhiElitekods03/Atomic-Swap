@@ -192,7 +192,11 @@ const SwapPage = () => {
       {/* Center */}
       <div className="w-12 flex flex-col items-center justify-center p-6">
         <div className="bg-white p-2 rounded-full">
-          <IoSwapHorizontalOutline size={30} color="#4A5568" className="font-bold" />
+          <IoSwapHorizontalOutline
+            size={30}
+            color="#4A5568"
+            className="font-bold"
+          />
         </div>
 
         <div className="flex flex-col space-y-4 mt-6">
@@ -201,8 +205,8 @@ const SwapPage = () => {
             className={`${
               freezeClicked
                 ? "bg-gray-400 cursor-not-allowed"
-                : "bg-gradient-to-tr from-[#191818] via-[#3c3b3b] to-[#464545]"
-            } text-white py-2 px-4 rounded transition-all duration-300 shadow-md shadow-white`}
+                : "bg-gradient-to-tr from-[#495155] via-[#008cffb1] to-[#0ed8d8]"
+            } text-white py-2 px-4 rounded transition-all duration-300 shadow-md shadow-[#0ed8d8] uppercase tracking-[2px]`}
             disabled={freezeClicked}
           >
             Freeze

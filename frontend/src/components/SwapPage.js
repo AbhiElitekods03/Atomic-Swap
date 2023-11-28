@@ -1,12 +1,16 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import React, { useState, useEffect } from "react";
-import { AiOutlineSwap } from "react-icons/ai";
+import { IoSwapHorizontalOutline } from "react-icons/io5";
 import { useAccount } from "wagmi";
+import Image from "next/image";
 import SwapSession from "./SwapSession";
 import { Alchemy, Network } from "alchemy-sdk";
 import sha256 from "crypto-js/sha256";
 import { ethers } from "ethers";
-import { depositFromAcc1 , completeSwap } from "../utils/Interact";
+import { depositFromAcc1, completeSwap } from "../utils/Interact";
+import walletGif from "@/assets/walletGif.gif";
+import placeholderImg from "@/assets/placeholderLogo.png";
+
 const config = {
   apiKey: "Jyuuy4MI_u6RLY8TlkGasdskg1CJeIhE",
   network: Network.MATIC_MUMBAI,
@@ -138,7 +142,10 @@ const SwapPage = () => {
   const handleFreezeClick = async () => {
     setFreezeClicked(true);
     const provider = await initializeEthers();
-    console.log("this is the URL which we r sending from user1 for bytes 32 hash",sessionURL);
+    console.log(
+      "this is the URL which we r sending from user1 for bytes 32 hash",
+      sessionURL
+    );
     depositFromAcc1(
       sessionURL,
       provider,
@@ -147,62 +154,99 @@ const SwapPage = () => {
     );
   };
 
-  const handleSignClick = async() =>{
+  const handleSignClick = async () => {
     const provider = await initializeEthers();
     const bytes32SessionId = ethers.utils.solidityKeccak256(
       ["string"],
-      [sessionURL],
+      [sessionURL]
     );
-    completeSwap(provider , bytes32SessionId);
+    completeSwap(provider, bytes32SessionId);
+  };
 
-  }
+  console.log(nfts);
 
   return (
     <div className="flex h-full bg-black min-h-screen text-white z-[999]">
       {/* Left Side */}
-      <div className="flex-1 flex flex-col items-center justify-center p-6 bg-black" style={{backgroundColor: "black"}}>
-        <ConnectButton accountStatus="address" chainStatus="icon" />
-
-        {isConnected ? (
-          <div className="mt-4">
-            <h2 className="text-lg font-semibold">Selected NFT</h2>
-
+      <div className="flex-1 flex flex-col items-center justify-center p-6">
+        {!isConnected && (
+          <Image alt="walletGif" src={walletGif} width={180} height={180} />
+        )}
+        <div
+          className={"rounded-lg mb-2"}
+          style={{
+            boxShadow: isConnected ? "" : "0 -1px 0px gray, 0 4px 6px white",
+          }}
+        >
+          <ConnectButton
+            accountStatus={{
+              smallScreen: "avatar",
+              largeScreen: "full",
+            }}
+            chainStatus="icon"
+          />
+        </div>
+        {!isConnected && (
+          <p className="text-[17px] text-[#bebdbd] mt-3">
+            Please connect your wallet
+          </p>
+        )}
+        {isConnected && (
+          <div>
             {selectedNft && (
-              <div className="bg-gray-200 p-2 my-1 rounded text-black">
-                {selectedNft.title} - ID: {selectedNft.tokenId}
+              <div className="mt-2">
+                <h2 className="text-[14px] text-[#d5d2d2] font-semibold">
+                  Selected NFT
+                </h2>
+                <div className="bg-gradient-to-l from-[black] via-[#4a4949] to-[#3d3d3d] p-2 my-1 rounded text-white">
+                  <h1 className="font-semibold">
+                    <i className="font-[400]">Title :</i> {selectedNft.title}
+                  </h1>
+                  <h1 className="font-semibold">
+                    <i className="font-[400] ml-1 mr-[17px]">ID </i>: {selectedNft.tokenId}
+                  </h1>
+                </div>
               </div>
             )}
-
             <button
               onClick={() => setShowNftSelector(!freezeClicked && true)} // Enable button if Freeze not clicked
               className={`${
-                freezeClicked
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-blue-700 hover:bg-blue-600"
-              } text-white px-4 py-2 mt-2 rounded transition-all duration-300`}
+                freezeClicked ? "bg-gray-400 cursor-not-allowed" : ""
+              } text-white px-4 py-2 mt-4 rounded hover:translate-y-[-4px] transition-all duration-300`}
               disabled={freezeClicked}
+              style={{
+                boxShadow: "0 -1px 0px gray, 0 4px 6px white",
+              }}
             >
               Select NFT
             </button>
+            <button
+              onClick={() => setShowNftSelector(!freezeClicked && true)} // Enable button if Freeze not clicked
+              className={`${
+                freezeClicked ? "bg-gray-400 cursor-not-allowed" : ""
+              } text-white px-4 py-2 mt-4 ml-4 rounded hover:translate-y-[-4px] transition-all duration-300`}
+              disabled={freezeClicked}
+              style={{
+                boxShadow: "0 -1px 0px gray, 0 4px 6px white",
+              }}
+            >
+              Select Token
+            </button>
           </div>
-        ) : (
-          <p className="mt-4">Please connect your wallet</p>
         )}
-
         {showNftSelector && (
           <div className="absolute w-72 max-h-96 overflow-y-auto bg-white border border-gray-300 p-4 rounded-lg shadow-lg">
             <h2 className="text-lg font-semibold mb-2 text-black">
               Select an NFT for swap
             </h2>
-
             {nfts.map((nft) => (
               <div
                 key={`${nft.address}-${nft.tokenId}`}
                 onClick={() => handleNftSelect(nft)}
-                className="p-2 bg-transparent border-b border-gray-300 cursor-pointer hover:bg-gray-100 text-black flex items-center"
+                className="p-2 border-b border-gray-300 cursor-pointer hover:bg-gray-100 text-black flex items-center"
               >
                 <img
-                  src={nft.image}
+                  src={nft?.image || placeholderImg}
                   alt={nft.title}
                   className="w-10 h-10 mr-2"
                 />
@@ -216,7 +260,11 @@ const SwapPage = () => {
       {/* Center */}
       <div className="w-12 flex flex-col items-center justify-center p-6">
         <div className="bg-white p-2 rounded-full">
-          <AiOutlineSwap size={30} color="#4A5568" />
+          <IoSwapHorizontalOutline
+            size={30}
+            color="#4A5568"
+            className="font-bold"
+          />
         </div>
 
         <div className="flex flex-col space-y-4 mt-6">
@@ -225,8 +273,8 @@ const SwapPage = () => {
             className={`${
               freezeClicked
                 ? "bg-gray-400 cursor-not-allowed"
-                : "bg-green-500 hover:bg-green-400"
-            } text-white py-2 px-4 rounded transition-all duration-300`}
+                : "bg-gradient-to-tr from-[#495155] via-[#008cffb1] to-[#0ed8d8]"
+            } text-white py-2 px-4 rounded transition-all duration-300 shadow-md shadow-[#0ed8d8] uppercase tracking-[2px]`}
             disabled={freezeClicked}
           >
             Freeze
@@ -237,8 +285,8 @@ const SwapPage = () => {
             className={`${
               false
                 ? "bg-gray-400 cursor-not-allowed"
-                : "bg-red-500 hover:bg-red-400"
-            } text-white py-2 px-4 rounded transition-all duration-300`}
+                : "bg-gradient-to-tr from-[#5f4f4a] via-[#ff4000b1] to-[#d8550e]"
+            } text-white py-2 px-4 rounded transition-all duration-300 shadow-md shadow-[red] uppercase tracking-[2px]`}
           >
             Sign
           </button>
@@ -248,7 +296,22 @@ const SwapPage = () => {
       {/* Right Side */}
       <div className="flex-1 flex flex-col items-center justify-center p-6">
         <div className="flex flex-col items-center space-y-4">
-          {selectedNft && (
+          {!selectedNft ? (
+            <div
+              className="rounded-lg w-[300px] h-[300px] flex items-center justify-center border"
+              style={{
+                boxShadow: isConnected
+                  ? ""
+                  : "0 -1px 0px gray, 0 4px 6px #0ed8d8",
+              }}
+            >
+              <h1 className="font-medium tracking-[2px] text-[#dae1e3] bg-[black] ">
+                Select{" "}
+                <i className="font-semibold text-[20px] text-[#6a99d5]">NFT</i>{" "}
+                to continue.
+              </h1>
+            </div>
+          ) : (
             <SwapSession
               sessionID={sessionURL}
               generateSessionId={generateSessionId}

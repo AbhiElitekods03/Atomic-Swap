@@ -8,13 +8,8 @@ import NavItem from "./customUI/navItem";
 const Navbar = () => {
   const navItems = [
     {
-      name: "Home",
-      path: "/",
-      icon: <IoIosHome className="text-[black] text-[20px]" />,
-    },
-    {
       name: "Swap",
-      path: "/swap",
+      path: "#swap",
       icon: <MdOutlineSwapCalls className="text-[black] text-[20px]" />,
     },
   ];
