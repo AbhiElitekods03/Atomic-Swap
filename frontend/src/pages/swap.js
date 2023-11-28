@@ -1,5 +1,5 @@
-import SwapSessionDetails from "@/components/SwapSessionDetails";
+import SwapSessionUser from "@/components/SwapSessionUser";
 
 export default function swap() {
-  return <SwapSessionDetails />;
+  return <SwapSessionUser />;
 }

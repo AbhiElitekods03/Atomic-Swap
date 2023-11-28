@@ -1,6 +1,5 @@
 import Image from "next/image";
 import React from "react";
-import { IoIosHome } from "react-icons/io";
 import { MdOutlineSwapCalls } from "react-icons/md";
 import logo from "@/assets/logo1.jpeg";
 import NavItem from "./customUI/navItem";

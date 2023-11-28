@@ -8,8 +8,9 @@ const HomePage = () => {
       <div className="h-full min-h-screen w-full flex flex-col items-center justify-center">
         <HomeSection />
       </div>
-      <div className="bg-black">
-        <SwapPage />
+      <div className="bg-black" id="swap">
+        <SwapPage /> 
+        {/* User 1 */}
       </div>
     </div>
   );

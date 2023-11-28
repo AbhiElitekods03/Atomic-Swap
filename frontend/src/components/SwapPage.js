@@ -166,9 +166,9 @@ const SwapPage = () => {
   console.log(nfts);
 
   return (
-    <div className="flex h-full bg-black min-h-screen text-white z-[999]">
+    <div className="flex flex-col md:flex-row h-full max-md:items-center bg-black min-h-screen text-white z-[999]">
       {/* Left Side */}
-      <div className="flex-1 flex flex-col items-center justify-center p-6">
+      <div className="flex-1 flex flex-col items-center justify-center md:p-6">
         {!isConnected && (
           <Image alt="walletGif" src={walletGif} width={180} height={180} />
         )}
@@ -258,7 +258,7 @@ const SwapPage = () => {
       </div>
 
       {/* Center */}
-      <div className="w-12 flex flex-col items-center justify-center p-6">
+      <div className="w-12 flex flex-col items-center justify-center md:p-6">
         <div className="bg-white p-2 rounded-full">
           <IoSwapHorizontalOutline
             size={30}
@@ -267,7 +267,7 @@ const SwapPage = () => {
           />
         </div>
 
-        <div className="flex flex-col space-y-4 mt-6">
+        <div className="flex max-md:items-center max-md:justify-center gap-2 md:flex-col md:space-y-4 mt-6">
           <button
             onClick={handleFreezeClick}
             className={`${
@@ -286,7 +286,7 @@ const SwapPage = () => {
               false
                 ? "bg-gray-400 cursor-not-allowed"
                 : "bg-gradient-to-tr from-[#5f4f4a] via-[#ff4000b1] to-[#d8550e]"
-            } text-white py-2 px-4 rounded transition-all duration-300 shadow-md shadow-[red] uppercase tracking-[2px]`}
+            } text-white py-2 px-7 md:px-4 rounded transition-all duration-300 shadow-md shadow-[red] uppercase tracking-[2px]`}
           >
             Sign
           </button>
@@ -294,7 +294,7 @@ const SwapPage = () => {
       </div>
 
       {/* Right Side */}
-      <div className="flex-1 flex flex-col items-center justify-center p-6">
+      <div className="flex-1 flex flex-col items-center justify-center md:p-6">
         <div className="flex flex-col items-center space-y-4">
           {!selectedNft ? (
             <div

@@ -128,7 +128,7 @@ const SwapPage = () => {
 
   return (
     <div className="flex h-screen bg-black text-white">
-      <div className="flex-1 flex flex-col items-center justify-center p-6">
+      <div className="flex-1 flex flex-col items-center justify-center md:p-6">
         {!isConnected && (
           <Image alt="walletGif" src={walletGif} width={180} height={180} />
         )}
@@ -138,7 +138,13 @@ const SwapPage = () => {
             boxShadow: isConnected ? "" : "0 -1px 0px gray, 0 4px 6px white",
           }}
         >
-          <ConnectButton accountStatus="address" chainStatus="icon" />
+          <ConnectButton
+            accountStatus={{
+              smallScreen: "avatar",
+              largeScreen: "full",
+            }}
+            chainStatus="icon"
+          />
         </div>
         {!isConnected && (
           <p className="text-[17px] text-[#bebdbd] mt-3">
@@ -147,22 +153,44 @@ const SwapPage = () => {
         )}
         {isConnected && (
           <div>
-            <h2 className="text-lg font-semibold">Selected NFT</h2>
             {selectedNft && (
-              <div className="bg-gray-200 p-2 my-1 rounded text-black">
-                {selectedNft.title} - ID: {selectedNft.tokenId}
+              <div className="mt-2">
+                <h2 className="text-[14px] text-[#d5d2d2] font-semibold">
+                  Selected NFT
+                </h2>
+                <div className="bg-gradient-to-l from-[black] via-[#4a4949] to-[#3d3d3d] p-2 my-1 rounded text-white">
+                  <h1 className="font-semibold">
+                    <i className="font-[400]">Title :</i> {selectedNft.title}
+                  </h1>
+                  <h1 className="font-semibold">
+                    <i className="font-[400] ml-1 mr-[17px]">ID </i>: {selectedNft.tokenId}
+                  </h1>
+                </div>
               </div>
             )}
             <button
               onClick={() => setShowNftSelector(!freezeClicked && true)} // Enable button if Freeze not clicked
               className={`${
-                freezeClicked
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-blue-700 hover:bg-blue-600"
-              } text-white px-4 py-2 mt-2 rounded transition-all duration-300`}
+                freezeClicked ? "bg-gray-400 cursor-not-allowed" : ""
+              } text-white px-4 py-2 mt-4 rounded hover:translate-y-[-4px] transition-all duration-300`}
               disabled={freezeClicked}
+              style={{
+                boxShadow: "0 -1px 0px gray, 0 4px 6px white",
+              }}
             >
               Select NFT
+            </button>
+            <button
+              onClick={() => setShowNftSelector(!freezeClicked && true)} // Enable button if Freeze not clicked
+              className={`${
+                freezeClicked ? "bg-gray-400 cursor-not-allowed" : ""
+              } text-white px-4 py-2 mt-4 ml-4 rounded hover:translate-y-[-4px] transition-all duration-300`}
+              disabled={freezeClicked}
+              style={{
+                boxShadow: "0 -1px 0px gray, 0 4px 6px white",
+              }}
+            >
+              Select Token
             </button>
           </div>
         )}
@@ -178,7 +206,7 @@ const SwapPage = () => {
                 className="p-2 border-b border-gray-300 cursor-pointer hover:bg-gray-100 text-black flex items-center"
               >
                 <img
-                  src={nft.image}
+                  src={nft?.image || placeholderImg}
                   alt={nft.title}
                   className="w-10 h-10 mr-2"
                 />
