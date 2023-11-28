@@ -1,15 +1,12 @@
-import Image from 'next/image'
-import { Inter } from 'next/font/google'
-import { ConnectButton } from '@rainbow-me/rainbowkit'
-import SwapPage from '@/components/SwapPage'
+import HomeSection from '@/components/HomeSection'
+import React from 'react'
 
-const inter = Inter({ subsets: ['latin'] })
-
-export default function Home() {
+const HomePage = () => {
   return (
-    <main
-    >
-      <SwapPage />
-    </main>
+    <div className='h-full min-h-screen w-full flex items-center justify-center'>
+      <HomeSection />
+    </div>
   )
 }
+
+export default HomePage

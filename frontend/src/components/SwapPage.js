@@ -158,9 +158,9 @@ const SwapPage = () => {
   }
 
   return (
-    <div className="flex h-screen bg-gradient-to-r from-blue-500 to-indigo-500 text-white">
+    <div className="flex h-full bg-black min-h-screen text-white z-[999]">
       {/* Left Side */}
-      <div className="flex-1 flex flex-col items-center justify-center p-6">
+      <div className="flex-1 flex flex-col items-center justify-center p-6 bg-black" style={{backgroundColor: "black"}}>
         <ConnectButton accountStatus="address" chainStatus="icon" />
 
         {isConnected ? (
