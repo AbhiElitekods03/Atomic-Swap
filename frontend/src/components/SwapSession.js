@@ -47,7 +47,7 @@ function SwapSession({
   useEffect(() => {
     console.log("Updated URL", sessionURL);
   }, [sessionURL]);
-  
+
   useEffect(() => {
     console.log("sessionURL", sessionURL);
     if (error) {
@@ -59,7 +59,10 @@ function SwapSession({
   return (
     <div className="flex flex-col overflow-hidden items-center w-96">
       <button
-        className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-full focus:outline-none focus:shadow-outline-blue transition duration-300"
+        className="bg-[#00bbff] text-black font-semibold hover:translate-x-[1px] hover:translate-y-[2px] px-6 py-2 rounded-lg focus:outline-none focus:shadow-outline-blue transition duration-300"
+        style={{
+          boxShadow: "0 4px 6px white",
+        }}
         onClick={handleGenerateId}
         disabled={isLoading}
       >
@@ -67,14 +70,14 @@ function SwapSession({
       </button>
 
       {sessionURL && (
-        <div className="flex flex-col items-center space-y-4 mt-5">
+        <div className="flex flex-col items-center space-y-4 mt-5 p-4 rounded-md bg-gradient-to-l from-[black] via-[#292929] to-[#1f1f1f]">
           <div className="bg-white p-4 rounded-md shadow-md">
             <QRCodeSVG value={sessionURL} size={150} />
           </div>
 
           <div className="text-center">
-            <p className="mb-2 font-semibold text-lg">Session URL:</p>
-            <div className="flex items-center space-x-2 border p-2 rounded-full">
+            <p className="mb-2 font-semibold text-[16px] uppercase">Session URL:</p>
+            <div className="flex items-center space-x-2 border p-2 py-1 rounded-xl">
               <input
                 type="url"
                 value={sessionURL}
@@ -87,9 +90,9 @@ function SwapSession({
                 onClick={handleCopyClick}
               >
                 {copied ? (
-                  <RiFileCopy2Fill size={20} />
+                  <RiFileCopy2Fill size={18} />
                 ) : (
-                  <RiFileCopy2Line size={20} />
+                  <RiFileCopy2Line size={18} />
                 )}
               </span>
             </div>
