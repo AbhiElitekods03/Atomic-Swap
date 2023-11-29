@@ -1,5 +1,5 @@
 import { Inter } from 'next/font/google'
-import SwapPage from "@/components/SwapPage.1"
+import SwapPage from '@/components/SwapPage'
 
 const inter = Inter({ subsets: ['latin'] })
 
