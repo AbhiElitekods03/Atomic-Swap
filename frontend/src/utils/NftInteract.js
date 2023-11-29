@@ -1,6 +1,5 @@
 import { ethers } from "ethers";
-import { Address, ABI } from "../contract/contract";
-import fetchABI from "./getchAbi";
+// import { Address, ABI } from "../contract/contract";
 
 const approveNFT = async (provider, nftAddress, tokenId, contractAddress) => {
   const signer = provider.getSigner();

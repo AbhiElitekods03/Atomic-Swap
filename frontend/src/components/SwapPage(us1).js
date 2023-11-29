@@ -1,15 +1,15 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import React, { useState, useEffect } from "react";
 import { IoSwapHorizontalOutline } from "react-icons/io5";
-
-import Image from "next/image";
 import { useAccount } from "wagmi";
-import { depositFromAcc2 } from "../utils/Interact";
+import Image from "next/image";
+import SwapSession from "./SwapSession";
 import { Alchemy, Network } from "alchemy-sdk";
-import NFTDisplayBox from "./DisplayNftDetails";
-import { useRouter } from "next/router";
+import sha256 from "crypto-js/sha256";
 import { ethers } from "ethers";
+import { depositFromAcc1, completeSwap } from "../utils/NftInteract";
 import walletGif from "@/assets/walletGif.gif";
+import placeholderImg from "@/assets/placeholderLogo.png";
 
 const config = {
   apiKey: "Jyuuy4MI_u6RLY8TlkGasdskg1CJeIhE",
@@ -18,18 +18,18 @@ const config = {
 const alchemy = new Alchemy(config);
 
 const SwapPage = () => {
-  const [freezeClicked, setFreezeClicked] = useState(false); // Track Freeze button click
   const [amount, setAmount] = useState("");
+  const [freezeClicked, setFreezeClicked] = useState(false);
   const { address, isConnected } = useAccount();
   const [nfts, setNfts] = useState([]);
   const [selectedNft, setSelectedNft] = useState(null);
+  const [tokens, setTokens] = useState([]);
+  const [selectedToken, setSelectedToken] = useState(null);
   const [showNftSelector, setShowNftSelector] = useState(false);
-  const [SessionURL, setSessionURL] = useState("");
-  const router = useRouter();
-  const { session_id, userAddress, title } = router.query;
-  console.log("sessionId", session_id);
-  console.log("userAddress", userAddress);
-  console.log("title", title);
+  const [showTokenSelector, setShowTokenSelector] = useState(false);
+  const [sessionURL, setSessionURL] = useState("");
+  const baseURL = "https://atomic-swap98.vercel.app/swap";
+
   const fetchNFTs = async (walletAddress) => {
     console.log("Fetching NFTs for address:", walletAddress);
     try {
@@ -53,16 +53,40 @@ const SwapPage = () => {
       setNfts(fetchedNfts);
     } catch (error) {
       console.error("Error fetching NFTs:", error);
+      throw error;
     }
   };
 
-  useEffect(() => {
-    const fullURL = window.location.href;
-    // This will give you the full URL
-    setSessionURL(fullURL);
+  const fetchTokens = async (walletAddress) => {
+    console.log("Fetching Tokens for address:", walletAddress);
+    try {
+      const balances = await alchemy.core.getTokenBalances(address);
 
-    console.log("Full URL:", fullURL);
-  }, [SessionURL]);
+      const tokenDetails = await Promise.all(
+        balances.tokenBalances
+          .filter((token) => token.tokenBalance !== "0")
+          .map(async (token) => {
+            const metadata = await alchemy.core.getTokenMetadata(
+              token.contractAddress
+            );
+
+            const balance =
+              token.tokenBalance / Math.pow(10, metadata.decimals);
+
+            return {
+              name: metadata.name,
+              symbol: metadata.symbol,
+              balance: balance.toFixed(2),
+              address: token.contractAddress,
+            };
+          })
+      );
+      setTokens(tokenDetails);
+    } catch (error) {
+      console.error("Error fetching Tokens Balances:", error);
+      throw error;
+    }
+  };
 
   const initializeEthers = async () => {
     try {
@@ -91,10 +115,16 @@ const SwapPage = () => {
     setSelectedNft(nft);
     setShowNftSelector(false);
   };
+  const handleTokenSelect = (token) => {
+    console.log("Token Selected",token);
+    setSelectedToken(token);
+    setShowTokenSelector(false);
+  };
 
   useEffect(() => {
     if (isConnected && address) {
       fetchNFTs(address);
+      fetchTokens(address);
     }
   }, [address, isConnected]);
   const handleConnect = () => {
@@ -110,24 +140,72 @@ const SwapPage = () => {
   };
 
   const handleConfirm = () => {
+    // Implement logic to handle the confirmed amount
     console.log("Amount confirmed:", amount);
     setShowModal(false);
   };
+  const handleCopyLink = () => {
+    // Implement copy link logic
+    console.log("Link copied to clipboard");
+  };
+
+  const generateSessionId = () => {
+    if (!address || !selectedNft.address || !selectedNft.tokenId) {
+      setError("Invalid token or user information.");
+      return;
+    }
+
+    // setIsLoading(true);
+    console.log("Generating session ID...");
+
+    try {
+      const uniqueId = sha256(
+        `${address}-${selectedNft.address}-${selectedNft.tokenId}-${Date.now()}`
+      ).toString();
+      // setSessionId(uniqueId);
+      console.log("Session ID set:", uniqueId);
+      const sessionURL = `${baseURL}?session_id=${uniqueId}&userAddress=${encodeURIComponent(
+        address
+      )}&title=${encodeURIComponent(selectedNft.title)}`;
+      setSessionURL(sessionURL);
+      return sessionURL;
+    } catch (e) {
+      console.error("Error generating session ID:", e);
+      // setError("Failed to generate session ID.");
+    } finally {
+      // setIsLoading(false);
+    }
+  };
+
   const handleFreezeClick = async () => {
     setFreezeClicked(true);
     const provider = await initializeEthers();
-    console.log("session URL in the handle freeze function", SessionURL);
-    console.log(selectedNft);
-    depositFromAcc2(
+    console.log(
+      "this is the URL which we r sending from user1 for bytes 32 hash",
+      sessionURL
+    );
+    depositFromAcc1(
+      sessionURL,
       provider,
-      SessionURL,
       selectedNft.address,
       selectedNft.tokenId
     );
   };
 
+  const handleSignClick = async () => {
+    const provider = await initializeEthers();
+    const bytes32SessionId = ethers.utils.solidityKeccak256(
+      ["string"],
+      [sessionURL]
+    );
+    completeSwap(provider, bytes32SessionId);
+  };
+
+  console.log(nfts);
+
   return (
-    <div className="flex h-screen bg-black text-white">
+    <div className="flex flex-col md:flex-row h-full max-md:items-center bg-black min-h-screen text-white z-[999]">
+      {/* Left Side */}
       <div className="flex-1 flex flex-col items-center justify-center md:p-6">
         {!isConnected && (
           <Image alt="walletGif" src={walletGif} width={180} height={180} />
@@ -163,7 +241,8 @@ const SwapPage = () => {
                     <i className="font-[400]">Title :</i> {selectedNft.title}
                   </h1>
                   <h1 className="font-semibold">
-                    <i className="font-[400] ml-1 mr-[17px]">ID </i>: {selectedNft.tokenId}
+                    <i className="font-[400] ml-1 mr-[17px]">ID </i>:{" "}
+                    {selectedNft.tokenId}
                   </h1>
                 </div>
               </div>
@@ -181,7 +260,7 @@ const SwapPage = () => {
               Select NFT
             </button>
             <button
-              onClick={() => setShowNftSelector(!freezeClicked && true)} // Enable button if Freeze not clicked
+              onClick={() => setShowTokenSelector(!showTokenSelector)} // Enable button if Freeze not clicked
               className={`${
                 freezeClicked ? "bg-gray-400 cursor-not-allowed" : ""
               } text-white px-4 py-2 mt-4 ml-4 rounded hover:translate-y-[-4px] transition-all duration-300`}
@@ -215,10 +294,31 @@ const SwapPage = () => {
             ))}
           </div>
         )}
+        {showTokenSelector && (
+          <div className="absolute w-72 max-h-96 overflow-y-auto bg-white border border-gray-300 p-4 rounded-lg shadow-lg">
+            <h2 className="text-lg font-semibold mb-2 text-black">
+              Select a Token for swap
+            </h2>
+
+            {tokens.map((token) => (
+              <div
+                key={token.address}
+                onClick={() => handleTokenSelect(token)}
+                className="p-2 border-b border-gray-300 cursor-pointer hover:bg-gray-100 text-black flex flex-col"
+              >
+                <span className="font-semibold">{token.name}</span>
+
+                <span className="text-sm">
+                  {token.symbol} - Balance: {token.balance}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Center */}
-      <div className="w-12 flex flex-col items-center justify-center p-6">
+      <div className="w-12 flex flex-col items-center justify-center md:p-6">
         <div className="bg-white p-2 rounded-full">
           <IoSwapHorizontalOutline
             size={30}
@@ -227,7 +327,7 @@ const SwapPage = () => {
           />
         </div>
 
-        <div className="flex flex-col space-y-4 mt-6">
+        <div className="flex max-md:items-center max-md:justify-center gap-2 md:flex-col md:space-y-4 mt-6">
           <button
             onClick={handleFreezeClick}
             className={`${
@@ -239,20 +339,48 @@ const SwapPage = () => {
           >
             Freeze
           </button>
+
+          <button
+            onClick={handleSignClick}
+            className={`${
+              false
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-gradient-to-tr from-[#5f4f4a] via-[#ff4000b1] to-[#d8550e]"
+            } text-white py-2 px-7 md:px-4 rounded transition-all duration-300 shadow-md shadow-[red] uppercase tracking-[2px]`}
+          >
+            Sign
+          </button>
         </div>
       </div>
 
       {/* Right Side */}
-      <div className="flex-1 flex flex-col items-center justify-center p-6">
+      <div className="flex-1 flex flex-col items-center justify-center md:p-6">
         <div className="flex flex-col items-center space-y-4">
-          <h2 className="text-2xl font-semibold mb-4 text-blue-100">
-            You will receive
-          </h2>
-          <NFTDisplayBox
-            session_id={session_id}
-            userAddress={userAddress}
-            title={title}
-          />
+          {!selectedNft ? (
+            <div
+              className="rounded-lg w-[300px] h-[300px] flex items-center justify-center border"
+              style={{
+                boxShadow: isConnected
+                  ? ""
+                  : "0 -1px 0px gray, 0 4px 6px #0ed8d8",
+              }}
+            >
+              <h1 className="font-medium tracking-[2px] text-[#dae1e3] bg-[black] ">
+                Select{" "}
+                <i className="font-semibold text-[20px] text-[#6a99d5]">NFT</i>{" "}
+                to continue.
+              </h1>
+            </div>
+          ) : (
+            <SwapSession
+              sessionID={sessionURL}
+              generateSessionId={generateSessionId}
+              userAddress={address}
+              tokenContractAddress={selectedNft.address}
+              tokenId={selectedNft.tokenId}
+              title={selectedNft.title}
+            />
+          )}
         </div>
       </div>
     </div>

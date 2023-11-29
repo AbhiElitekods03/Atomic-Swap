@@ -1,15 +1,15 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import React, { useState, useEffect } from "react";
 import { IoSwapHorizontalOutline } from "react-icons/io5";
-import { useAccount } from "wagmi";
+
 import Image from "next/image";
-import SwapSession from "./SwapSession";
+import { useAccount } from "wagmi";
+import { depositFromAcc2 } from "../utils/NftInteract";
 import { Alchemy, Network } from "alchemy-sdk";
-import sha256 from "crypto-js/sha256";
+import NFTDisplayBox from "./DisplayNftDetails";
+import { useRouter } from "next/router";
 import { ethers } from "ethers";
-import { depositFromAcc1, completeSwap } from "../utils/Interact";
 import walletGif from "@/assets/walletGif.gif";
-import placeholderImg from "@/assets/placeholderLogo.png";
 
 const config = {
   apiKey: "Jyuuy4MI_u6RLY8TlkGasdskg1CJeIhE",
@@ -18,15 +18,18 @@ const config = {
 const alchemy = new Alchemy(config);
 
 const SwapPage = () => {
-  const [amount, setAmount] = useState("");
   const [freezeClicked, setFreezeClicked] = useState(false); // Track Freeze button click
+  const [amount, setAmount] = useState("");
   const { address, isConnected } = useAccount();
   const [nfts, setNfts] = useState([]);
   const [selectedNft, setSelectedNft] = useState(null);
   const [showNftSelector, setShowNftSelector] = useState(false);
-  const [sessionURL, setSessionURL] = useState("");
-  const baseURL = "https://atomic-swap98.vercel.app/swap";
-
+  const [SessionURL, setSessionURL] = useState("");
+  const router = useRouter();
+  const { session_id, userAddress, title } = router.query;
+  console.log("sessionId", session_id);
+  console.log("userAddress", userAddress);
+  console.log("title", title);
   const fetchNFTs = async (walletAddress) => {
     console.log("Fetching NFTs for address:", walletAddress);
     try {
@@ -52,16 +55,22 @@ const SwapPage = () => {
       console.error("Error fetching NFTs:", error);
     }
   };
+
+  useEffect(() => {
+    const fullURL = window.location.href;
+    // This will give you the full URL
+    setSessionURL(fullURL);
+
+    console.log("Full URL:", fullURL);
+  }, [SessionURL]);
+
   const initializeEthers = async () => {
     try {
-      // Connect to an Ethereum provider (e.g., MetaMask)
       const provider = new ethers.providers.Web3Provider(window.ethereum);
 
-      // Access the user's account address
       const [account] = await provider.listAccounts();
       console.log("Connected account:", account);
 
-      // Example: Retrieve the balance
       const balance = await provider.getBalance(account);
       console.log("Balance:", ethers.utils.formatEther(balance));
       return provider;
@@ -93,7 +102,6 @@ const SwapPage = () => {
   };
 
   const handleDisconnect = () => {
-    // Implement disconnect logic if needed
     setShowModal(false);
   };
 
@@ -102,72 +110,24 @@ const SwapPage = () => {
   };
 
   const handleConfirm = () => {
-    // Implement logic to handle the confirmed amount
     console.log("Amount confirmed:", amount);
     setShowModal(false);
   };
-  const handleCopyLink = () => {
-    // Implement copy link logic
-    console.log("Link copied to clipboard");
-  };
-
-  const generateSessionId = () => {
-    if (!address || !selectedNft.address || !selectedNft.tokenId) {
-      setError("Invalid token or user information.");
-      return;
-    }
-
-    // setIsLoading(true);
-    console.log("Generating session ID...");
-
-    try {
-      const uniqueId = sha256(
-        `${address}-${selectedNft.address}-${selectedNft.tokenId}-${Date.now()}`
-      ).toString();
-      // setSessionId(uniqueId);
-      console.log("Session ID set:", uniqueId);
-      const sessionURL = `${baseURL}?session_id=${uniqueId}&userAddress=${encodeURIComponent(
-        address
-      )}&title=${encodeURIComponent(selectedNft.title)}`;
-      setSessionURL(sessionURL);
-      return sessionURL;
-    } catch (e) {
-      console.error("Error generating session ID:", e);
-      // setError("Failed to generate session ID.");
-    } finally {
-      // setIsLoading(false);
-    }
-  };
-
   const handleFreezeClick = async () => {
     setFreezeClicked(true);
     const provider = await initializeEthers();
-    console.log(
-      "this is the URL which we r sending from user1 for bytes 32 hash",
-      sessionURL
-    );
-    depositFromAcc1(
-      sessionURL,
+    console.log("session URL in the handle freeze function", SessionURL);
+    console.log(selectedNft);
+    depositFromAcc2(
       provider,
+      SessionURL,
       selectedNft.address,
       selectedNft.tokenId
     );
   };
 
-  const handleSignClick = async () => {
-    const provider = await initializeEthers();
-    const bytes32SessionId = ethers.utils.solidityKeccak256(
-      ["string"],
-      [sessionURL]
-    );
-    completeSwap(provider, bytes32SessionId);
-  };
-
-  console.log(nfts);
-
   return (
-    <div className="flex flex-col md:flex-row h-full max-md:items-center bg-black min-h-screen text-white z-[999]">
-      {/* Left Side */}
+    <div className="flex h-screen bg-black text-white">
       <div className="flex-1 flex flex-col items-center justify-center md:p-6">
         {!isConnected && (
           <Image alt="walletGif" src={walletGif} width={180} height={180} />
@@ -258,7 +218,7 @@ const SwapPage = () => {
       </div>
 
       {/* Center */}
-      <div className="w-12 flex flex-col items-center justify-center md:p-6">
+      <div className="w-12 flex flex-col items-center justify-center p-6">
         <div className="bg-white p-2 rounded-full">
           <IoSwapHorizontalOutline
             size={30}
@@ -267,7 +227,7 @@ const SwapPage = () => {
           />
         </div>
 
-        <div className="flex max-md:items-center max-md:justify-center gap-2 md:flex-col md:space-y-4 mt-6">
+        <div className="flex flex-col space-y-4 mt-6">
           <button
             onClick={handleFreezeClick}
             className={`${
@@ -279,48 +239,20 @@ const SwapPage = () => {
           >
             Freeze
           </button>
-
-          <button
-            onClick={handleSignClick}
-            className={`${
-              false
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-gradient-to-tr from-[#5f4f4a] via-[#ff4000b1] to-[#d8550e]"
-            } text-white py-2 px-7 md:px-4 rounded transition-all duration-300 shadow-md shadow-[red] uppercase tracking-[2px]`}
-          >
-            Sign
-          </button>
         </div>
       </div>
 
       {/* Right Side */}
-      <div className="flex-1 flex flex-col items-center justify-center md:p-6">
+      <div className="flex-1 flex flex-col items-center justify-center p-6">
         <div className="flex flex-col items-center space-y-4">
-          {!selectedNft ? (
-            <div
-              className="rounded-lg w-[300px] h-[300px] flex items-center justify-center border"
-              style={{
-                boxShadow: isConnected
-                  ? ""
-                  : "0 -1px 0px gray, 0 4px 6px #0ed8d8",
-              }}
-            >
-              <h1 className="font-medium tracking-[2px] text-[#dae1e3] bg-[black] ">
-                Select{" "}
-                <i className="font-semibold text-[20px] text-[#6a99d5]">NFT</i>{" "}
-                to continue.
-              </h1>
-            </div>
-          ) : (
-            <SwapSession
-              sessionID={sessionURL}
-              generateSessionId={generateSessionId}
-              userAddress={address}
-              tokenContractAddress={selectedNft.address}
-              tokenId={selectedNft.tokenId}
-              title={selectedNft.title}
-            />
-          )}
+          <h2 className="text-2xl font-semibold mb-4 text-blue-100">
+            You will receive
+          </h2>
+          <NFTDisplayBox
+            session_id={session_id}
+            userAddress={userAddress}
+            title={title}
+          />
         </div>
       </div>
     </div>

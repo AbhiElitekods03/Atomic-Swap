@@ -1,5 +1,5 @@
 import HomeSection from "@/components/HomeSection";
-import SwapPage from "@/components/SwapPage";
+import SwapPage from "@/components/SwapPage(us1)";
 import React from "react";
 
 const HomePage = () => {
